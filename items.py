@@ -95,29 +95,27 @@ def read_file(file_path):
 def make_csv(
         in_file_path,
         out_file_path,
-        start_port,
+        start_port=0,
         prefix="",
         suffix="",
         image_aliases="",
-        image_fingerprint=""):
+        image_fingerprint="",
+        class_code="",
+        ip_address=""):
     members = read_file(in_file_path)
     port_offset = 0
-    file_meta = ["hostname,port,image_aliases,image_fingerprint"]
+    file_meta = ["class_code,name,ip,port,image_aliases,image_fingerprint"]
     for i in range(len(members)):
         while True:
             port_candidate = start_port + i + port_offset
             if check_port_available(port_candidate):
                 file_meta.append(
-                    prefix +
-                    members[i] +
-                    suffix +
-                    "," +
-                    str(port_candidate) +
-                    "," +
-                    image_aliases +
-                    "," +
+                    class_code + "," +
+                    members[i] + "," +
+                    ip_address + "," +
+                    str(port_candidate) + "," +
+                    image_aliases + "," +
                     image_fingerprint
-
                 )
                 break
             else:
@@ -130,12 +128,14 @@ if __name__ == "__main__":
     make_csv(
         'member.txt',
         'member.csv',
-        10000,
-        prefix="PIT0014-",
+        start_port=10000,
+        ip_address="160.252.131.148",
+        class_code="PIT0014",
         image_aliases="PIT0014-v1")
     for line in read_file('member.csv')[1:]:
-        hostname, port, aliases, fingerprint = line.split(",")
-        print(hostname, port, aliases, fingerprint)
-    launch_container_machine(hostname, port)
+        class_code,name,ip,port,aliases,fingerprint = line.split(",")
+        #print(class_code+"-"+name, port, aliases, fingerprint)
+        print("launch"+class_code+"-"+name)
+        #launch_container_machine(class_code+"-"+name, port)
     # launch_container_machine("my-test2","5659")
     # delete_machine("my-vmapitest")
