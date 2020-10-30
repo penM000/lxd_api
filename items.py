@@ -92,7 +92,6 @@ async def launch_machine(
         if len(get_machine_used_port(hostname)) != 0:
             assign_port = get_machine_used_port(hostname)[0]
 
-    
     # URL生成
     try_url = ""
     if https == "0":
@@ -103,26 +102,30 @@ async def launch_machine(
     try_url += ":" + str(assign_port)
 
     # 起動確認
-    if int(startcheck):
-        await get_html("https://127.0.0.1:9090")
+    if "1" == startcheck:
+        result = await wait_get_html(try_url, httpstatus, starttimeout)
+        if result:
+            return make_response_dict(details="web ok")
+        else:
+            return make_response_dict(False, "timeout_error")
     else:
-        return
+        return make_response_dict(details="web no check")
 
 
 async def wait_get_html(url, status, time_out):
     start_time = time.time()
-    while start_time - time.time() < time_out:
-        await asyncio.sleep(1)
+    while time.time() - start_time < time_out:
         result = await get_html(url)
-        if result == status:
+        if str(result) == str(status):
             return True
+        await asyncio.sleep(1)
     return False
 
 
 async def get_html(url):
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get(url) as resp:
+            async with session.get(url, verify_ssl=False) as resp:
                 return int(resp.status)
         except aiohttp.client_exceptions.ClientConnectorError:
             return 0
@@ -423,9 +426,16 @@ def get_machine_file(machine_name, file_path, local_path):
     return file_meta
 
 
+async def test():
+    hoge = await wait_get_html("https://yukkuriikouze.com", 200, 5)
+    print(hoge)
+
+
 if __name__ == "__main__":
-    if "0":
-        print(get_machine_used_port("rin331"))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(test())
+
+    print()
 
 
 """
