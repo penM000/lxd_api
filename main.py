@@ -8,19 +8,22 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse ,FileResponse,StreamingResponse, Response, Response
+from fastapi.responses import HTMLResponse, FileResponse, StreamingResponse, Response, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, File, UploadFile
 from pydantic import BaseModel
 
 import items
 
+#スケジューラー
+Schedule = AsyncIOScheduler()
+Schedule.start()
 
-
-
+#fastapi
 app = FastAPI()
 
 #app.mount("/html", StaticFiles(directory="html"), name="root")
+
 
 @app.get("/get_all_machine")
 async def request_all_machine_name():
@@ -29,39 +32,37 @@ async def request_all_machine_name():
 
 @app.get("/launch_machine")
 async def request_launch_machine(
-        hostname        : str           ,
-        imagealias      = ""            ,
-        imagefinger     = ""            ,
-        machinetype     = "container"   ,
-        cpu             = 2             ,
-        memory          = "4GB"         ,
-        storage         = "32GB"        ,
-        srcport         = 8080          ,
-        startcheck      = 1             ,
-        https           = 0             ,
-        httpstatus      = 200           ,
-        starttimeout    = 60            ,
-        startportassign = 10000
-    ):
-    
- 
+    hostname: str,
+    imagealias="",
+    imagefinger="",
+    machinetype="container",
+    cpu=2,
+    memory="4GB",
+    storage="32GB",
+    srcport=8080,
+    startcheck=1,
+    https=0,
+    httpstatus=200,
+    starttimeout=60,
+    startportassign=10000
+):
+
     result = await items.launch_machine(
-        hostname       ,
-        imagealias      ,
-        imagefinger       ,
-        machinetype      ,
-        cpu              ,
-        memory              ,
-        storage               ,
-        srcport               ,
-        startcheck           ,
-        https               ,
-        httpstatus            ,
-        starttimeout       ,
+        hostname,
+        imagealias,
+        imagefinger,
+        machinetype,
+        cpu,
+        memory,
+        storage,
+        srcport,
+        startcheck,
+        https,
+        httpstatus,
+        starttimeout,
         startportassign
     )
     return result
-
 
 
 @app.get("/start")
@@ -72,4 +73,3 @@ async def request_launch_container_machine(name: str):
 @app.get("/stop")
 async def request_launch_container_machine(name: str):
     return items.stop_machine(name)
-
