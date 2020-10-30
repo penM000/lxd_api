@@ -92,9 +92,17 @@ async def launch_machine(
         if len(get_machine_used_port(hostname)) != 0:
             assign_port = get_machine_used_port(hostname)[0]
 
-    # 起動確認
-    try_url=""
     
+    # URL生成
+    try_url = ""
+    if https == "0":
+        try_url += "http://"
+    else:
+        try_url += "http://"
+    try_url += "127.0.0.1"
+    try_url += ":" + str(assign_port)
+
+    # 起動確認
     if int(startcheck):
         await get_html("https://127.0.0.1:9090")
     else:
@@ -416,7 +424,7 @@ def get_machine_file(machine_name, file_path, local_path):
 
 
 if __name__ == "__main__":
-    if "0" :
+    if "0":
         print(get_machine_used_port("rin331"))
 
 
