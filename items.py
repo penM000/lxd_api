@@ -13,7 +13,7 @@ import pylxd
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # スケジューラー
-stop_machine_schedules = {}
+
 Schedule = AsyncIOScheduler()
 Schedule.start()
 
@@ -24,13 +24,15 @@ client = pylxd.Client()
 
 def make_response_dict(
     status=True,
-    reason="success",
-    details=""
+    details="success",
+    assign_port="",
+    option=""
 ):
     return {
         "status": status,
-        "reason": reason,
-        "details": details
+        "details": details,
+        "assign_port": assign_port
+        "option": option
     }
 
 
@@ -88,28 +90,44 @@ async def launch_machine(
             pass
     # マシンが存在場合
     else:
-        machine.start()
+        remove_stop_machine_schedule(hostname)
         if len(get_machine_used_port(hostname)) != 0:
             assign_port = get_machine_used_port(hostname)[0]
 
+        if machine.status == "Running":
+
+            if await wait_get_html(make_url(assign_port), httpstatus, 5):
+                pass
+            else:
+                machine.restart()
+        else:
+            machine.start()
+
+    # 起動確認
+    if "1" == startcheck:
+        result = await wait_get_html(
+            make_url(assign_port), 
+            httpstatus, 
+            starttimeout
+        )
+        if result:
+            return make_response_dict(assign_port=assign_port)
+        else:
+            return make_response_dict(False, "timeout_error")
+    else:
+        return make_response_dict(assign_port=assign_port)
+
+
+def make_url(assign_port):
     # URL生成
     try_url = ""
     if https == "0":
         try_url += "http://"
     else:
-        try_url += "http://"
+        try_url += "https://"
     try_url += "127.0.0.1"
     try_url += ":" + str(assign_port)
-
-    # 起動確認
-    if "1" == startcheck:
-        result = await wait_get_html(try_url, httpstatus, starttimeout)
-        if result:
-            return make_response_dict(details="web ok")
-        else:
-            return make_response_dict(False, "timeout_error")
-    else:
-        return make_response_dict(details="web no check")
+    return try_url
 
 
 async def wait_get_html(url, status, time_out):
@@ -435,7 +453,7 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(test())
 
-    print()
+    print(get_ip())
 
 
 """
