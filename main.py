@@ -32,7 +32,7 @@ async def request_launch_machine(
     imagefinger="",
     machinetype="container",
     cpu=2,
-    memory="4GB",
+    memory="2GB",
     storage="32GB",
     srcport=8080,
     startcheck=1,
