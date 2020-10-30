@@ -4,7 +4,6 @@ import json
 import random
 import string
 #import aiofiles
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 from fastapi import FastAPI
@@ -15,11 +14,7 @@ from pydantic import BaseModel
 
 import items
 
-#スケジューラー
-Schedule = AsyncIOScheduler()
-Schedule.start()
-
-#fastapi
+# fastapi
 app = FastAPI()
 
 #app.mount("/html", StaticFiles(directory="html"), name="root")
