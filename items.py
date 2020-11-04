@@ -59,7 +59,23 @@ async def exec_command_to_machine(hostname, cmd):
         raise Exception("マシンが見つかりません")
     async_machine_execute = async_wrap(machine.execute)
     result = await async_machine_execute(shlex.split(cmd))
-    return result
+    return make_response_dict(status=result[0], details=result[1])
+
+# ファイル送信
+
+
+async def send_file_to_machine(hostname, filename, filedata):
+    machine = get_machine(hostname)
+    if machine is None:
+        raise Exception("マシンが見つかりません")
+    if filename[0] != "/":
+        filename = "/" + filename
+    async_machine_file_put = async_wrap(machine.files.put)
+    try:
+        await async_machine_file_put(filename, filedata)
+        return make_response_dict()
+    except BaseException:
+        return make_response_dict(False, "file put error")
 
 
 async def launch_machine(
@@ -476,7 +492,7 @@ async def test():
 
 
 async def test():
-    await asyncio.gather(exec_command_to_machine("funo", "sleep 10"),exec_command_to_machine("funo", "sleep 10"),exec_command_to_machine("funo", "sleep 10"))
+    await asyncio.gather(exec_command_to_machine("funo", "sleep 10"), exec_command_to_machine("funo", "sleep 10"), exec_command_to_machine("funo", "sleep 10"))
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()

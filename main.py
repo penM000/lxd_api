@@ -69,6 +69,13 @@ async def request_start_machine(hostname: str):
 async def request_stop_machine(hostname: str):
     return items.stop_machine(hostname)
 
-@app.get("exec_command")
-async def request_exec_command_machine(hostname: str,command: str):
-    return items.exec_command_to_machine(hostname,command)
+
+@app.get("/exec_command")
+async def request_exec_command_machine(hostname: str, command: str):
+    return await items.exec_command_to_machine(hostname, command)
+
+
+@app.post("/uploadfile/{hostname}")
+async def create_upload_file(hostname: str, file: UploadFile = File(...)):
+    filedata = await file.read()
+    return await items.send_file_to_machine(hostname, file.filename, filedata)
