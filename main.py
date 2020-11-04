@@ -61,10 +61,14 @@ async def request_launch_machine(
 
 
 @app.get("/start")
-async def request_launch_container_machine(name: str):
-    return items.start_machine(name)
+async def request_start_machine(hostname: str):
+    return items.start_machine(hostname)
 
 
 @app.get("/stop")
-async def request_launch_container_machine(name: str):
-    return items.stop_machine(name)
+async def request_stop_machine(hostname: str):
+    return items.stop_machine(hostname)
+
+@app.get("exec_command")
+async def request_exec_command_machine(hostname: str,command: str):
+    return items.exec_command_to_machine(hostname,command)

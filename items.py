@@ -14,8 +14,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 import asyncio
 from functools import wraps, partial
+import shlex
 
 # 同期関数を非同期関数にする
+
+
 def async_wrap(func):
     @wraps(func)
     async def run(*args, loop=None, executor=None, **kwargs):
@@ -24,9 +27,9 @@ def async_wrap(func):
         pfunc = partial(func, *args, **kwargs)
         return await loop.run_in_executor(executor, pfunc)
     return run
+
+
 # スケジューラー
-
-
 Schedule = AsyncIOScheduler()
 Schedule.start()
 
@@ -47,6 +50,16 @@ def make_response_dict(
         "assign_port": assign_port,
         "option": option
     }
+
+
+# マシンコマンド実行
+async def exec_command_to_machine(hostname, cmd):
+    machine = get_machine(hostname)
+    if machine is None:
+        raise Exception("マシンが見つかりません")
+    async_machine_execute = async_wrap(machine.execute)
+    result = await async_machine_execute(shlex.split(cmd))
+    return result
 
 
 async def launch_machine(
@@ -462,11 +475,12 @@ async def test():
     print(hoge)
 
 
+async def test():
+    await asyncio.gather(exec_command_to_machine("funo", "sleep 10"),exec_command_to_machine("funo", "sleep 10"),exec_command_to_machine("funo", "sleep 10"))
+
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(test())
-
-    print(get_ip())
 
 
 """
