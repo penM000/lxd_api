@@ -12,7 +12,20 @@ import psutil
 import pylxd
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+import asyncio
+from functools import wraps, partial
+
+# 同期関数を非同期関数にする
+def async_wrap(func):
+    @wraps(func)
+    async def run(*args, loop=None, executor=None, **kwargs):
+        if loop is None:
+            loop = asyncio.get_event_loop()
+        pfunc = partial(func, *args, **kwargs)
+        return await loop.run_in_executor(executor, pfunc)
+    return run
 # スケジューラー
+
 
 Schedule = AsyncIOScheduler()
 Schedule.start()
@@ -31,7 +44,7 @@ def make_response_dict(
     return {
         "status": status,
         "details": details,
-        "assign_port": assign_port
+        "assign_port": assign_port,
         "option": option
     }
 
@@ -72,17 +85,17 @@ async def launch_machine(
         # コンテナであれば
         if machinetype == "container":
             assign_port = scan_available_port(int(startportassign))
-            """
+            print("なし")
             launch_container_machine(
                 hostname=hostname,
-                srcport=srcport ,
+                srcport=srcport,
                 dstport=assign_port,
                 cpu=cpu,
                 memory=memory,
                 fingerprint=imagefinger,
                 aliases=imagealias
             )
-            """
+
             print(get_ip())
             pass
         # それ以外は仮想マシン
@@ -106,8 +119,8 @@ async def launch_machine(
     # 起動確認
     if "1" == startcheck:
         result = await wait_get_html(
-            make_url(assign_port), 
-            httpstatus, 
+            make_url(assign_port),
+            httpstatus,
             starttimeout
         )
         if result:
@@ -185,7 +198,7 @@ def launch_container_machine(
         image = {"type": "image", "aliases": str(aliases)}
     config = {
         "name": str(hostname),
-        "source": str(image),
+        "source": image,
         "config": {"limits.cpu": str(cpu), "limits.memory": str(memory)},
         "devices": {
             "vscode-port": {
@@ -195,7 +208,7 @@ def launch_container_machine(
                 "type": "proxy"}
         }
     }
-    container = client.containers.create(config)
+    container = client.containers.create(config, wait=True)
     container.start()
 
 
@@ -214,8 +227,8 @@ def launch_virtual_machine():
                 "pool": "default",
                 "type": "disk",
                 "size": "20GB"}}}
-    virtual_machines = client.virtual_machines.create(config)
-    virtual_machines.start()
+    virtual_machines = client.virtual_machines.create(config, wait=True)
+    virtual_machines.start(wait=True)
 
 
 def get_machine(name):
