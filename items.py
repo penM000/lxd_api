@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import inspect
 import asyncio
 import os
 import socket
@@ -12,13 +11,11 @@ import psutil
 import pylxd
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-import asyncio
 from functools import wraps, partial
 import shlex
 
+
 # 同期関数を非同期関数にする
-
-
 def async_wrap(func):
     @wraps(func)
     async def run(*args, loop=None, executor=None, **kwargs):
@@ -61,13 +58,12 @@ async def exec_command_to_machine(hostname, cmd):
     result = await async_machine_execute(shlex.split(cmd))
     return make_response_dict(status=result[0], details=result[1])
 
+
 # ファイル送信
-
-
 async def send_file_to_machine(hostname, filename, filedata):
     machine = get_machine(hostname)
     if machine is None:
-        raise Exception("マシンが見つかりません")
+        return make_response_dict(False, "machine not found")
     if filename[0] != "/":
         filename = "/" + filename
     async_machine_file_put = async_wrap(machine.files.put)
